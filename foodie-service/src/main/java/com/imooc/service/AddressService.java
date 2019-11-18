@@ -52,4 +52,13 @@ public interface AddressService {
      */
     public void updateUserAddressToBeDefault(String userId, String addressId);
 
+
+    /**
+     * 根据 用户id 和地址 id 查询具体的地址信息
+     * @param userId
+     * @param addressId
+     * @return
+     */
+    public UserAddress queryUserAddress(String userId, String addressId);
+
 }

@@ -3,6 +3,7 @@ package com.imooc.service.impl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.imooc.enums.CommentLevel;
+import com.imooc.enums.YesOrNo;
 import com.imooc.mapper.*;
 import com.imooc.pojo.*;
 import com.imooc.pojo.vo.CommentLevelCountsVO;
@@ -165,6 +166,37 @@ public class ItemServiceImpl implements ItemService {
         List<ShopCartVO> list = itemsMapperCustom.queryItemsBySpecIds(specIdsList);
 
         return list;
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    @Override
+    public ItemsSpec queryItemSpecById(String itemSpecId) {
+
+        return itemsSpecMapper.selectByPrimaryKey(itemSpecId);
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    @Override
+    public String queryItemMainImgById(String itemId) {
+        ItemsImg itemsImg = new ItemsImg();
+        itemsImg.setItemId(itemId);
+        itemsImg.setIsMain(YesOrNo.YES.type);
+        ItemsImg result = itemsImgMapper.selectOne(itemsImg);
+
+        return result != null ? result.getUrl() : "";
+    }
+
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    @Override
+    public void decreaseItemSpecStock(String itemSpecId, int buyCounts) {
+        // 超卖的情况，
+        // 不能使用 synchronized ，集群情况下无用；性能低下
+        // 分布式锁  redis zookeeper
+        int result = itemsMapperCustom.decreaseItemSpecStock(itemSpecId, buyCounts);
+        if (result != 1) {// 数据库更新条数
+            throw new RuntimeException("订单创建失败，库存不足");
+        }
     }
 
 
