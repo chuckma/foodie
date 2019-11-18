@@ -17,6 +17,8 @@ public class BaseController {
 
     public static final String FOODIE_SHOPCART = "shopcart";
 
+    String imoocUserId = "2011596-1364502989";
+    String password = "aw15-pe1d-vbd1-0p0e";
 
     // 微信支付成功->支付中心->foodie 平台
     //                    |-> 回调通知的url

@@ -68,11 +68,13 @@ public class OrderController extends BaseController{
         MerchantOrdersVO merchantOrdersVO = orderVO.getMerchantOrdersVO();
         merchantOrdersVO.setReturnUrl(payReturnUrl);
 
+        // 为方便测试，所有的支付金额都默认为 1 分钱
+        merchantOrdersVO.setAmount(1);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("imoocUserId", "imooc");
-        headers.add("password", "imooc");
+        headers.add("imoocUserId", imoocUserId);
+        headers.add("password", password);
 
         HttpEntity<MerchantOrdersVO> entity = new HttpEntity<>(merchantOrdersVO, headers);
 
