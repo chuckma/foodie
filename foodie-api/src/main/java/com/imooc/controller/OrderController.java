@@ -2,6 +2,7 @@ package com.imooc.controller;
 
 import com.imooc.enums.OrderStatusEnum;
 import com.imooc.enums.PayMethod;
+import com.imooc.pojo.OrderStatus;
 import com.imooc.pojo.vo.MerchantOrdersVO;
 import com.imooc.pojo.bo.SubmitOrderBO;
 import com.imooc.pojo.vo.OrderVO;
@@ -89,13 +90,31 @@ public class OrderController extends BaseController{
     }
 
 
-
+    /**
+     * 支付中心接受到微信支付成功之后，调用本接口，修改订单状态
+     * @param merchantOrderId
+     * @return
+     */
     @PostMapping("/notifyMerchantOrderPaid")
     public Integer notifyMerchantOrderPaid(String merchantOrderId) {
 
         orderService.updateOrderStatus(merchantOrderId, OrderStatusEnum.WAIT_DELIVER.type);
 
         return HttpStatus.OK.value();
+    }
+
+
+    /**
+     * 用户提交订单后页面轮训查询订单支付状态
+     * @param orderId
+     * @return
+     */
+    @PostMapping("/getPaidOrderInfo")
+    public JSONResult getPaidOrderInfo(String orderId) {
+
+        OrderStatus orderStatus = orderService.queryOrderStatusInfo(orderId);
+
+        return JSONResult.ok(orderStatus);
     }
 
 }
