@@ -5,6 +5,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.io.File;
+
 /**
  * @author mcg
  * @create 2019-11-14-17:39
@@ -27,5 +29,15 @@ public class BaseController {
 
     // 支付中心调用地址
     String paymentUrl = "http://payment.t.mukewang.com/foodie-payment/payment/createMerchantOrder";
+
+
+    // 用户头像上传的位置
+    public static final String IMAGE_USER_FACE_LOCATION = File.separator + "Users" +
+            File.separator + "lucasma" +
+            File.separator + "developer" +
+            File.separator + "images" +
+            File.separator + "foodie" +
+            File.separator + "faces";
+
 
 }
