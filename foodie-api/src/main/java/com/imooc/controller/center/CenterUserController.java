@@ -48,7 +48,6 @@ public class CenterUserController extends BaseController {
     private FileUpload fileUpload;
 
     @ApiOperation(value = "用户头像修改", notes = "用户头像修改", httpMethod = "POST")
-
     @PostMapping("uploadFace")
     public JSONResult uploadFace(
             @ApiParam(name = "userId", value = "用户id", required = true)
