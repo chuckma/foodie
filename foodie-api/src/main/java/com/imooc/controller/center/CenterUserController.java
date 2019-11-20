@@ -6,6 +6,7 @@ import com.imooc.pojo.bo.center.CenterUserBO;
 import com.imooc.resource.FileUpload;
 import com.imooc.service.center.CenterUserService;
 import com.imooc.utils.CookieUtils;
+import com.imooc.utils.DateUtil;
 import com.imooc.utils.JSONResult;
 import com.imooc.utils.JsonUtils;
 import io.swagger.annotations.Api;
@@ -47,7 +48,6 @@ public class CenterUserController extends BaseController {
     private FileUpload fileUpload;
 
     @ApiOperation(value = "用户头像修改", notes = "用户头像修改", httpMethod = "POST")
-
     @PostMapping("uploadFace")
     public JSONResult uploadFace(
             @ApiParam(name = "userId", value = "用户id", required = true)
@@ -73,6 +73,11 @@ public class CenterUserController extends BaseController {
 
                     // 获取文件的后缀名
                     String suffix = fileNameArr[fileNameArr.length - 1];
+                    if (!suffix.equalsIgnoreCase("png") &&
+                            !suffix.equalsIgnoreCase("jpg") &&
+                            !suffix.equalsIgnoreCase("jpeg")) {
+                        return JSONResult.errorMsg("图片格式不正确");
+                    }
 
                     // face-{userId}.png
                     // 文件名称重组 覆盖式上传；如果增量上传，可以额外拼接时间字符串
@@ -80,6 +85,8 @@ public class CenterUserController extends BaseController {
 
                     // 上传头像最后的保存位置
                     String finalFacePath = fileSpace + uploadPathPrefix + File.separator + newFileName;
+                    // 用于提供给web 服务访问的 图片地址
+                    uploadPathPrefix += ("/" + newFileName);
                     File outFile = new File(finalFacePath);
                     if (outFile.getParentFile() != null) {
                         // 创建文件夹
@@ -108,7 +115,14 @@ public class CenterUserController extends BaseController {
         } else {
             return JSONResult.errorMsg("文件不能为空");
         }
-
+        // 图片服务地址
+        String imageServerUrl = fileUpload.getImageServerUrl();
+        // 由于浏览器可能存在缓存，可以在这里加上时间戳，以保证头像更新之后可以即时刷新
+        String finalUserFaceUrl = imageServerUrl + uploadPathPrefix
+                + "?t=" + DateUtil.getCurrentDateString(DateUtil.DATE_PATTERN);
+        Users userResult = centerUserService.updateUserFace(userId, finalUserFaceUrl);
+        userResult = setNullProperty(userResult);
+        CookieUtils.setCookie(request,response,"user", JsonUtils.objectToJson(userResult),true);
         return JSONResult.ok();
     }
 
