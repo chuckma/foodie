@@ -74,6 +74,11 @@ public class CenterUserController extends BaseController {
 
                     // 获取文件的后缀名
                     String suffix = fileNameArr[fileNameArr.length - 1];
+                    if (!suffix.equalsIgnoreCase("png") &&
+                            !suffix.equalsIgnoreCase("jpg") &&
+                            !suffix.equalsIgnoreCase("jpeg")) {
+                        return JSONResult.errorMsg("图片格式不正确");
+                    }
 
                     // face-{userId}.png
                     // 文件名称重组 覆盖式上传；如果增量上传，可以额外拼接时间字符串
