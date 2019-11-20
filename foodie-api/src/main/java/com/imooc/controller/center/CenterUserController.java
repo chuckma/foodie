@@ -6,6 +6,7 @@ import com.imooc.pojo.bo.center.CenterUserBO;
 import com.imooc.resource.FileUpload;
 import com.imooc.service.center.CenterUserService;
 import com.imooc.utils.CookieUtils;
+import com.imooc.utils.DateUtil;
 import com.imooc.utils.JSONResult;
 import com.imooc.utils.JsonUtils;
 import io.swagger.annotations.Api;
@@ -80,6 +81,8 @@ public class CenterUserController extends BaseController {
 
                     // 上传头像最后的保存位置
                     String finalFacePath = fileSpace + uploadPathPrefix + File.separator + newFileName;
+                    // 用于提供给web 服务访问的 图片地址
+                    uploadPathPrefix += ("/" + newFileName);
                     File outFile = new File(finalFacePath);
                     if (outFile.getParentFile() != null) {
                         // 创建文件夹
@@ -108,7 +111,14 @@ public class CenterUserController extends BaseController {
         } else {
             return JSONResult.errorMsg("文件不能为空");
         }
-
+        // 图片服务地址
+        String imageServerUrl = fileUpload.getImageServerUrl();
+        // 由于浏览器可能存在缓存，可以在这里加上时间戳，以保证头像更新之后可以即时刷新
+        String finalUserFaceUrl = imageServerUrl + uploadPathPrefix
+                + "?t=" + DateUtil.getCurrentDateString(DateUtil.DATE_PATTERN);
+        Users userResult = centerUserService.updateUserFace(userId, finalUserFaceUrl);
+        userResult = setNullProperty(userResult);
+        CookieUtils.setCookie(request,response,"user", JsonUtils.objectToJson(userResult),true);
         return JSONResult.ok();
     }
 

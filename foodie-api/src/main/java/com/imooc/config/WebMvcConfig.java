@@ -20,6 +20,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
 
         registry.addResourceHandler("/**") // 映射所有的资源
+                .addResourceLocations("classpath:/META-INF/resources/") // 映射 swagger2
                 .addResourceLocations("file:/Users/lucasma/developer/images/"); // 映射本地资源文件
     }
 
