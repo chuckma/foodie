@@ -3,12 +3,10 @@ package com.imooc.controller.center;
 import com.imooc.controller.BaseController;
 import com.imooc.pojo.Users;
 import com.imooc.pojo.bo.center.CenterUserBO;
+import com.imooc.pojo.bo.center.PasswordBO;
 import com.imooc.resource.FileUpload;
 import com.imooc.service.center.CenterUserService;
-import com.imooc.utils.CookieUtils;
-import com.imooc.utils.DateUtil;
-import com.imooc.utils.JSONResult;
-import com.imooc.utils.JsonUtils;
+import com.imooc.utils.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -154,6 +152,36 @@ public class CenterUserController extends BaseController {
         return JSONResult.ok();
     }
 
+
+    @ApiOperation(value = "修改密码", notes = "修改密码", httpMethod = "POST")
+    @PostMapping("/resetPassword")
+    public JSONResult resetPassword(
+            @ApiParam(name = "userId", value = "用户ID", required = true)
+            @RequestParam String userId,
+            @RequestBody @Valid PasswordBO passwordBO,
+            BindingResult result,
+            HttpServletRequest request, HttpServletResponse response) throws Exception {
+        System.out.println(passwordBO);
+
+        if (result.hasErrors()) {
+            Map<String, String> errorMap = getErrors(result);
+            return JSONResult.errorMap(errorMap);
+        }
+
+        Users users = centerUserService.queryUserInfoContainsPwd(userId);
+        String oldPassword = MD5Utils.getMD5Str(passwordBO.getOldPassword());
+        if (!oldPassword.equals(users.getPassword())) {
+            return JSONResult.errorMsg("原密码不正确");
+        }
+        if (!passwordBO.getConfirmPassword().equals(passwordBO.getPassword())) {
+            return JSONResult.errorMsg("两次密码输入不一致");
+        }
+
+        centerUserService.updatePassword(userId, passwordBO);
+        // 修改密码后清除浏览器 cookie
+        CookieUtils.deleteCookie(request, response, "user");
+        return JSONResult.ok();
+    }
 
     private Map<String, String> getErrors(BindingResult result) {
         HashMap<String, String> map = new HashMap<>();

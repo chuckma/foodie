@@ -2,6 +2,7 @@ package com.imooc.service.center;
 
 import com.imooc.pojo.Users;
 import com.imooc.pojo.bo.center.CenterUserBO;
+import com.imooc.pojo.bo.center.PasswordBO;
 
 /**
  * @author mcg
@@ -15,6 +16,9 @@ public interface CenterUserService {
      * @return
      */
     public Users queryUserInfo(String userId);
+
+
+    public Users queryUserInfoContainsPwd(String userId);
 
     /**
      * 修改用户信息
@@ -31,5 +35,13 @@ public interface CenterUserService {
      * @return
      */
     public Users updateUserFace(String userId, String faceUrl);
+
+
+    /**
+     * 修改用户密码
+     * @param userId
+     * @param passwordBO
+     */
+    public void updatePassword(String userId, PasswordBO passwordBO);
 
 }
