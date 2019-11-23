@@ -1,12 +1,9 @@
 package com.imooc.service.impl;
 
 import com.imooc.enums.Sex;
-import com.imooc.mapper.StuMapper;
 import com.imooc.mapper.UsersMapper;
-import com.imooc.pojo.Stu;
 import com.imooc.pojo.Users;
 import com.imooc.pojo.bo.UserBO;
-import com.imooc.service.StuService;
 import com.imooc.service.UserService;
 import com.imooc.utils.DateUtil;
 import com.imooc.utils.MD5Utils;
