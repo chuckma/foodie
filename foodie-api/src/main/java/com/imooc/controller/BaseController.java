@@ -30,6 +30,10 @@ public class BaseController {
     //                    |-> 回调通知的url
     // String payReturnUrl = "http://localhost:8088/orders/notifyMerchantOrderPaid";
 //    String payReturnUrl = "192.168.5.201:8088/foodie-api/orders/notifyMerchantOrderPaid";
+
+    /**
+     * 如果用内网穿透的方式，必须要加项目入口地址 foodie-api，内网穿透时注意映射的端口是否一致。
+     */
     String payReturnUrl = "http://a9858840.ngrok.io/foodie-api/orders/notifyMerchantOrderPaid";
 
     // 支付中心调用地址

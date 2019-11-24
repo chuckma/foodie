@@ -27,6 +27,7 @@ public class CorsConfig {
 
         CorsConfiguration config = new CorsConfiguration();
         config.addAllowedOrigin("http://localhost:8080");
+        // 跨域设置，前端项目所在 Tomcat ip:port
         config.addAllowedOrigin("http://192.168.5.201:8080");
 
         // 设置是否发送 cookie 信息
