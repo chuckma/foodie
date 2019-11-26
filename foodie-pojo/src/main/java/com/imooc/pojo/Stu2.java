@@ -2,7 +2,7 @@ package com.imooc.pojo;
 
 import javax.persistence.Id;
 
-public class Stu {
+public class Stu2 {
     @Id
     private Integer id;
 
@@ -10,13 +10,24 @@ public class Stu {
 
     private Integer age;
 
-    public Stu() {
+    private String nickName;
+
+    public Stu2() {
     }
 
-    public Stu(Integer id, String name, Integer age) {
+    public Stu2(Integer id, String name, Integer age, String nickName) {
         this.id = id;
         this.name = name;
         this.age = age;
+        this.nickName = nickName;
+    }
+
+    public String getNickName() {
+        return nickName;
+    }
+
+    public void setNickName(String nickName) {
+        this.nickName = nickName;
     }
 
     /**
@@ -63,10 +74,11 @@ public class Stu {
 
     @Override
     public String toString() {
-        return "Stu{" +
+        return "Stu2{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", age=" + age +
+                ", nickName='" + nickName + '\'' +
                 '}';
     }
 }
