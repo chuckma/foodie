@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonAppend;
 import com.imooc.pojo.Stu;
 import com.imooc.service.StuService;
 import com.imooc.service.TestTransService;
+import com.imooc.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -19,6 +20,10 @@ public class TestTransServiceImpl implements TestTransService {
 
     @Autowired
     private StuService stuService;
+
+
+    @Autowired
+    private UserService userService;
 
     /**
      * 事务传播 - Propagation
@@ -61,5 +66,11 @@ public class TestTransServiceImpl implements TestTransService {
         stuService.saveParent();
 
 //        int a = 1 / 0;*/
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    @Override
+    public void batchSaveUser() {
+
     }
 }

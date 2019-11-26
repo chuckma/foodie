@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 /**
  * @Author mcg
  * @Date 2019/11/14 22:05
@@ -66,6 +68,13 @@ public class StuServiceImpl implements StuService {
         saveChild1();
         int a = 1 / 0;
         saveChild2();
+    }
+
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    @Override
+    public void saveStuList(List<Stu> list) {
+        stuMapper.insertList(list);
     }
 
     public void saveChild1() {

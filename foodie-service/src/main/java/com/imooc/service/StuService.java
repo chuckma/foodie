@@ -2,6 +2,8 @@ package com.imooc.service;
 
 import com.imooc.pojo.Stu;
 
+import java.util.List;
+
 /**
  * @Author mcg
  * @Date 2019/11/14 22:02
@@ -19,4 +21,8 @@ public interface StuService {
 
     public void saveParent();
     public void saveChildren();
+
+
+    public void saveStuList(List<Stu> list);
+
 }
