@@ -1,6 +1,7 @@
 package com.imooc.pojo;
 
 import javax.persistence.Id;
+import java.util.Objects;
 
 public class Stu2 {
     @Id
@@ -80,5 +81,22 @@ public class Stu2 {
                 ", age=" + age +
                 ", nickName='" + nickName + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Stu2 stu2 = (Stu2) o;
+        return Objects.equals(id, stu2.id) &&
+                Objects.equals(name, stu2.name) &&
+                Objects.equals(age, stu2.age) &&
+                Objects.equals(nickName, stu2.nickName);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(id, name, age, nickName);
     }
 }

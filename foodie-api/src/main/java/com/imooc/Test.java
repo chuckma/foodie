@@ -18,7 +18,13 @@ public class Test {
         Stu s = new Stu(122133, "cafda", 12);
 
         Stu2 stu2 = new Stu2();
-        BeanUtils.copyProperties(s, stu2);
+        Stu2 stu21 = new Stu2();
+        stu2.setAge(12);
+        stu21.setAge(12);
+        System.out.println(stu2.hashCode());
+        System.out.println(stu21.hashCode());
+        System.out.println(stu2.equals(stu21));
+
         System.out.println(stu2.getNickName());
 
     }
