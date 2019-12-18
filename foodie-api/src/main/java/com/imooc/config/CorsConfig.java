@@ -27,6 +27,11 @@ public class CorsConfig {
 
         CorsConfiguration config = new CorsConfiguration();
         config.addAllowedOrigin("http://localhost:8080");
+        config.addAllowedOrigin("http://shop.z.mukewang.com:8080");
+        config.addAllowedOrigin("http://center.z.mukewang.com:8080");
+        config.addAllowedOrigin("http://shop.z.mukewang.com");
+        config.addAllowedOrigin("http://center.z.mukewang.com");
+        config.addAllowedOrigin("http://localhost:8080");
         // 跨域设置，前端项目所在 Tomcat ip:port
         config.addAllowedOrigin("http://192.168.5.201:8080");
 
