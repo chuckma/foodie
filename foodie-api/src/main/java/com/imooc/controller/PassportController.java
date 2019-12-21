@@ -1,12 +1,10 @@
 package com.imooc.controller;
 
 import com.imooc.pojo.Users;
+import com.imooc.pojo.bo.ShopCartBO;
 import com.imooc.pojo.bo.UserBO;
 import com.imooc.service.UserService;
-import com.imooc.utils.CookieUtils;
-import com.imooc.utils.JSONResult;
-import com.imooc.utils.JsonUtils;
-import com.imooc.utils.MD5Utils;
+import com.imooc.utils.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
@@ -15,6 +13,11 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.imooc.controller.BaseController.FOODIE_SHOPCART;
 
 /**
  * @author mcg
@@ -27,6 +30,9 @@ public class PassportController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private RedisOperator redisOperator;
 
     /**
      * RequestParam 代表是一种请求类型的参数，而不是路径参数
@@ -79,6 +85,8 @@ public class PassportController {
         Users userResult = userService.createUser(userBO);
         userResult = setNullProperty(userResult);
         CookieUtils.setCookie(request,response,"user", JsonUtils.objectToJson(userResult),true);
+
+        synchShopCartData(userResult.getId(), request, response);
         return JSONResult.ok();
     }
 
@@ -105,8 +113,88 @@ public class PassportController {
         CookieUtils.setCookie(request,response,"user", JsonUtils.objectToJson(userResult),true);
 
         // TODO 生成用户 token 存入 redis 会话
-        // TODO 同步购物车数据
+        //  同步购物车数据
+        synchShopCartData(userResult.getId(), request, response);
         return JSONResult.ok(userResult);
+    }
+
+
+    /**
+     * 注册登录成功后，同步cookie和redis中的购物车数据
+     */
+    private void synchShopCartData(String userId, HttpServletRequest request,
+                                   HttpServletResponse response) {
+
+        /**
+         * 1. redis中无数据，如果cookie中的购物车为空，那么这个时候不做任何处理
+         *                 如果cookie中的购物车不为空，此时直接放入redis中
+         * 2. redis中有数据，如果cookie中的购物车为空，那么直接把redis的购物车覆盖本地cookie
+         *                 如果cookie中的购物车不为空，
+         *                      如果cookie中的某个商品在redis中存在，
+         *                      则以cookie为主，删除redis中的，
+         *                      把cookie中的商品直接覆盖redis中（参考京东）
+         * 3. 同步到redis中去了以后，覆盖本地cookie购物车的数据，保证本地购物车的数据是同步最新的
+         */
+
+        // 从redis中获取购物车
+        String shopCartJsonRedis = redisOperator.get(FOODIE_SHOPCART + ":" + userId);
+
+        // 从cookie中获取购物车
+        String shopCartStrCookie = CookieUtils.getCookieValue(request, FOODIE_SHOPCART, true);
+
+        if (StringUtils.isBlank(shopCartJsonRedis)) {
+            // redis为空，cookie不为空，直接把cookie中的数据放入redis
+            if (StringUtils.isNotBlank(shopCartStrCookie)) {
+                redisOperator.set(FOODIE_SHOPCART + ":" + userId, shopCartStrCookie);
+            }
+        } else {
+            // redis不为空，cookie不为空，合并cookie和redis中购物车的商品数据（同一商品则覆盖redis）
+            if (StringUtils.isNotBlank(shopCartStrCookie)) {
+
+                /**
+                 * 1. 已经存在的，把cookie中对应的数量，覆盖redis（参考京东）
+                 * 2. 该项商品标记为待删除，统一放入一个待删除的list
+                 * 3. 从cookie中清理所有的待删除list
+                 * 4. 合并redis和cookie中的数据
+                 * 5. 更新到redis和cookie中
+                 */
+
+                List<ShopCartBO> shopCartListRedis = JsonUtils.jsonToList(shopCartJsonRedis, ShopCartBO.class);
+                List<ShopCartBO> shopCartListCookie = JsonUtils.jsonToList(shopCartStrCookie, ShopCartBO.class);
+
+                // 定义一个待删除list
+                List<ShopCartBO> pendingDeleteList = new ArrayList<>();
+
+                for (ShopCartBO redisShopCart : shopCartListRedis) {
+                    String redisSpecId = redisShopCart.getSpecId();
+
+                    for (ShopCartBO cookieShopCart : shopCartListCookie) {
+                        String cookieSpecId = cookieShopCart.getSpecId();
+
+                        if (redisSpecId.equals(cookieSpecId)) {
+                            // 覆盖购买数量，不累加，参考京东
+                            redisShopCart.setBuyCounts(cookieShopCart.getBuyCounts());
+                            // 把cookieShopCart放入待删除列表，用于最后的删除与合并
+                            pendingDeleteList.add(cookieShopCart);
+                        }
+
+                    }
+                }
+
+                // 从现有cookie中删除对应的覆盖过的商品数据
+                shopCartListCookie.removeAll(pendingDeleteList);
+
+                // 合并两个list
+                shopCartListRedis.addAll(shopCartListCookie);
+                // 更新到redis和cookie
+                CookieUtils.setCookie(request, response, FOODIE_SHOPCART, JsonUtils.objectToJson(shopCartListRedis), true);
+                redisOperator.set(FOODIE_SHOPCART + ":" + userId, JsonUtils.objectToJson(shopCartListRedis));
+            } else {
+                // redis不为空，cookie为空，直接把redis覆盖cookie
+                CookieUtils.setCookie(request, response, FOODIE_SHOPCART, shopCartJsonRedis, true);
+            }
+
+        }
     }
 
     private Users setNullProperty(Users userResult) {
@@ -128,7 +216,8 @@ public class PassportController {
         // 清除 cookie
         CookieUtils.deleteCookie(request, response, "user");
         //  TODO 分布式会话中需要清除用户数据
-        //  TODO 退出登录，清空购物车
+        //  退出登录，清空 cookie 购物车
+        CookieUtils.deleteCookie(request, response, FOODIE_SHOPCART);
         return JSONResult.ok();
     }
 

@@ -3,22 +3,29 @@ package com.imooc.controller;
 import com.imooc.enums.OrderStatusEnum;
 import com.imooc.enums.PayMethod;
 import com.imooc.pojo.OrderStatus;
+import com.imooc.pojo.bo.ShopCartBO;
 import com.imooc.pojo.vo.MerchantOrdersVO;
 import com.imooc.pojo.bo.SubmitOrderBO;
 import com.imooc.pojo.vo.OrderVO;
 import com.imooc.service.OrderService;
+import com.imooc.utils.CookieUtils;
 import com.imooc.utils.JSONResult;
+import com.imooc.utils.JsonUtils;
+import com.imooc.utils.RedisOperator;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import springfox.documentation.spring.web.json.Json;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 
 /**
@@ -36,6 +43,10 @@ public class OrderController extends BaseController{
     @Autowired
     private OrderService orderService;
 
+
+    @Autowired
+    private RedisOperator redisOperator;
+
     @Autowired
     private RestTemplate restTemplate; // 可以向别的系统发起http请求
 
@@ -50,8 +61,18 @@ public class OrderController extends BaseController{
                 && submitOrderBO.getPayMethod() != PayMethod.ALIPAY.type) {
             return JSONResult.errorMsg("支付方式不支持");
         }
+
+        String shopCartJson = redisOperator.get(FOODIE_SHOPCART + ":" + submitOrderBO.getUserId());
+
+        if (StringUtils.isBlank(shopCartJson)) {
+            return JSONResult.errorMsg("购物车数据有误");
+        }
+
+        List<ShopCartBO> shopCartBOList = JsonUtils.jsonToList(shopCartJson, ShopCartBO.class);
+
+
         //1. 创建订单
-        OrderVO orderVO = orderService.createOrder(submitOrderBO);
+        OrderVO orderVO = orderService.createOrder(shopCartBOList,submitOrderBO);
         String orderId = orderVO.getOrderId();
 
 
@@ -63,8 +84,15 @@ public class OrderController extends BaseController{
          *  1003  购买
          *  1004
          */
-        // TODO 整合 redis 之后，清除购物车已结算的商品，同步到 前端 cookie
-//        CookieUtils.setCookie(request, response, FOODIE_SHOPCART, "", true);
+
+        // 清理覆盖现有的 redis 汇总的数据
+        shopCartBOList.removeAll(orderVO.getTobeRemovedShopCartList());
+
+        redisOperator.set(FOODIE_SHOPCART+":"+submitOrderBO.getUserId(), JsonUtils.objectToJson(shopCartBOList));
+
+        //  整合 redis 之后，清除购物车已结算的商品，同步到 前端 cookie
+        CookieUtils.setCookie(request, response, FOODIE_SHOPCART, JsonUtils.objectToJson(shopCartBOList), true);
+
         //3. 向支付中心发送当前订单，用于保存支付中心的订单数据
         MerchantOrdersVO merchantOrdersVO = orderVO.getMerchantOrdersVO();
         merchantOrdersVO.setReturnUrl(payReturnUrl);

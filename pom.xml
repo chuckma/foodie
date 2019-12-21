@@ -46,12 +46,12 @@
             <artifactId>spring-boot-starter-web</artifactId>
 
             <!--打包 2 war 移除内置的 Tomcat -->
-            <exclusions>
+           <!-- <exclusions>
                 <exclusion>
                     <artifactId>spring-boot-starter-tomcat</artifactId>
                     <groupId>org.springframework.boot</groupId>
                 </exclusion>
-            </exclusions>
+            </exclusions>-->
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -91,6 +91,12 @@
             <version>1.2.12</version>
         </dependency>
 
+
+        <!--redis 依赖-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
         <!-- apache 工具类 -->
         <dependency>
             <groupId>commons-codec</groupId>

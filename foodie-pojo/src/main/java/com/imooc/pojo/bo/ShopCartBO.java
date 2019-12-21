@@ -83,7 +83,7 @@ public class ShopCartBO {
 
     @Override
     public String toString() {
-        return "ShopCartBO{" +
+        return "ShopCartVO{" +
                 "itemId='" + itemId + '\'' +
                 ", itemImgUrl='" + itemImgUrl + '\'' +
                 ", itemName='" + itemName + '\'' +

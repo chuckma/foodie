@@ -1,5 +1,6 @@
 package com.imooc.controller;
 
+import com.google.common.base.Strings;
 import com.imooc.enums.YesOrNo;
 import com.imooc.pojo.Carousel;
 import com.imooc.pojo.Category;
@@ -8,10 +9,13 @@ import com.imooc.pojo.vo.NewItemsVO;
 import com.imooc.service.CarouselService;
 import com.imooc.service.CategoryService;
 import com.imooc.utils.JSONResult;
+import com.imooc.utils.JsonUtils;
+import com.imooc.utils.RedisOperator;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.models.auth.In;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,11 +42,21 @@ public class IndexController {
     @Autowired
     private CategoryService categoryService;
 
+    @Autowired
+    private RedisOperator redisOperator;
+
     @ApiOperation(value = "获取首页轮播图列表",notes = "获取首页轮播图列表",httpMethod = "GET")
     @GetMapping("/carousel")
     public JSONResult carousel() {
+        List<Carousel> list;
+        String carouselStr = redisOperator.get("carousel");
+        if (StringUtils.isBlank(carouselStr)) {
+            list = carouselService.queryAll(YesOrNo.YES.type);
+            redisOperator.set("carousel", JsonUtils.objectToJson(list));
+        } else {
+            list = JsonUtils.jsonToList(carouselStr, Carousel.class);
+        }
 
-        List<Carousel> list = carouselService.queryAll(YesOrNo.YES.type);
         return JSONResult.ok(list);
     }
 
@@ -56,7 +71,14 @@ public class IndexController {
     @GetMapping("/cats")
     public JSONResult cats() {
 
-        List<Category> list = categoryService.queryAllRootLevelCat();
+        List<Category> list;
+        String catsStr = redisOperator.get("cats");
+        if (StringUtils.isBlank(catsStr)) {
+            list = categoryService.queryAllRootLevelCat();
+            redisOperator.set("cats", JsonUtils.objectToJson(list));
+        }else {
+            list = JsonUtils.jsonToList(catsStr, Category.class);
+        }
         return JSONResult.ok(list);
     }
 
@@ -73,7 +95,14 @@ public class IndexController {
             return JSONResult.errorMsg("分类不存在");
         }
 
-        List<CategoryVO> list = categoryService.getSubCatList(rootCatId);
+        List<CategoryVO> list;
+        String subCatStr = redisOperator.get("subCat");
+        if (StringUtils.isBlank(subCatStr)) {
+             list = categoryService.getSubCatList(rootCatId);
+            redisOperator.set("subCat", JsonUtils.objectToJson(list));
+        }else {
+            list = JsonUtils.jsonToList(subCatStr, CategoryVO.class);
+        }
 
         return JSONResult.ok(list);
     }
