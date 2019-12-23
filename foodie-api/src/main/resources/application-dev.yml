@@ -9,9 +9,16 @@ spring:
       password: rootpwd
   redis:
     database: 1
-    host: 192.168.5.203
-    port: 6379
+    sentinel:
+      master: imooc-master
+      nodes: 192.168.5.205:26379,192.168.5.206:26379,192.168.5.207:26379
     password: imooc
+    # Redis 单机单实例
+#    database: 1
+#    host: 192.168.5.205
+#    port: 6379
+#    password: imooc
+    # Redis 哨兵
 
 
 
