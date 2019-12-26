@@ -7,6 +7,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+
 /**
  * @author mcg
  * @create 2019-11-14-17:39
@@ -40,5 +44,24 @@ public class RedisController {
         redisOperator.del(key);
         return "OK";
     }
+
+
+    @GetMapping("/batchSet")
+    public Object batchSet(String key) {
+        for (int i = 0; i < 10; i++) {
+            redisOperator.set("c"+i,UUID.randomUUID().toString());
+
+        }
+        return "OK";
+    }
+
+    @GetMapping("/batchGet")
+    public Object batchGet(String... keys) {
+        List<String> keysList = Arrays.asList(keys);
+        return redisOperator.mget(keysList);
+    }
+
+
+
 
 }
