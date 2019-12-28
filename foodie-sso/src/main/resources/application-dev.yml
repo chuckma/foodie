@@ -1,0 +1,33 @@
+server:
+  port: 8090
+
+
+
+spring:
+  datasource:                                           # 数据源的相关配置
+      url: jdbc:mysql://localhost:3306/foodie-shop-dev?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true
+      password: rootpwd
+  redis:
+#    cluster:
+#      nodes: 192.168.5.51:6379,192.168.5.52:6379,192.168.5.53:6379,192.168.5.54:6379,192.168.5.55:6379,192.168.5.56:6379
+#    password: imooc
+  # redis 集群
+
+  # Redis 哨兵
+#    database: 1
+#    sentinel:
+#      master: imooc-master
+#      nodes: 192.168.5.205:26379,192.168.5.206:26379,192.168.5.207:26379
+#    password: imooc
+    # Redis 单机单实例
+    database: 0
+    host: 192.168.5.203
+    port: 6379
+    password: imooc
+
+
+
+
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
