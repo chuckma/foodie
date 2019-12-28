@@ -39,6 +39,9 @@ spring:
       max-file-size: 512000 # 文件上传大小限制 500kb
       max-request-size: 512000 # 请求限制大小 500 kb
 
+  session:
+    store-type: redis
+
 
 ############################################################
 #

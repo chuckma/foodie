@@ -3,11 +3,13 @@ package com.imooc.controller;
 import com.imooc.pojo.Users;
 import com.imooc.pojo.bo.ShopCartBO;
 import com.imooc.pojo.bo.UserBO;
+import com.imooc.pojo.vo.UserVO;
 import com.imooc.service.UserService;
 import com.imooc.utils.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,8 +18,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static com.imooc.controller.BaseController.FOODIE_SHOPCART;
+import static com.imooc.controller.BaseController.REDIS_USER_TOKEN;
 
 /**
  * @author mcg
@@ -26,7 +30,7 @@ import static com.imooc.controller.BaseController.FOODIE_SHOPCART;
 @Api(value = "注册登录",tags = {"用于用户注册登录的接口"})
 @RestController
 @RequestMapping("passport")
-public class PassportController {
+public class PassportController extends BaseController{
 
     @Autowired
     private UserService userService;
@@ -83,12 +87,19 @@ public class PassportController {
         }
         // 4 实现注册
         Users userResult = userService.createUser(userBO);
-        userResult = setNullProperty(userResult);
-        CookieUtils.setCookie(request,response,"user", JsonUtils.objectToJson(userResult),true);
+//        userResult = setNullProperty(userResult);
+
+        // 实现用户的 redis 会话
+        UserVO userVO = conventUsersVO(userResult);
+
+        CookieUtils.setCookie(request,response,"user", JsonUtils.objectToJson(userVO),true);
 
         synchShopCartData(userResult.getId(), request, response);
         return JSONResult.ok();
     }
+
+
+
 
     @ApiOperation(value = "用户登录",notes = "用户登录",httpMethod = "POST")
     @PostMapping("/login")
@@ -109,10 +120,14 @@ public class PassportController {
         if (userResult == null) {
             return JSONResult.errorMsg("用户名或者密码不正确");
         }
-        userResult = setNullProperty(userResult);
-        CookieUtils.setCookie(request,response,"user", JsonUtils.objectToJson(userResult),true);
+//        userResult = setNullProperty(userResult);
 
-        // TODO 生成用户 token 存入 redis 会话
+
+        // redis 会话
+        UserVO userVO = conventUsersVO(userResult);
+
+        CookieUtils.setCookie(request,response,"user", JsonUtils.objectToJson(userVO),true);
+
         //  同步购物车数据
         synchShopCartData(userResult.getId(), request, response);
         return JSONResult.ok(userResult);
@@ -213,10 +228,12 @@ public class PassportController {
     public JSONResult logout(@RequestParam String userId,HttpServletRequest request,
                              HttpServletResponse response) {
 
-        // 清除 cookie
+        // 清除用户相关的cookie
         CookieUtils.deleteCookie(request, response, "user");
-        //  TODO 分布式会话中需要清除用户数据
-        //  退出登录，清空 cookie 购物车
+        //分布式会话中需要清除 redis 中 user 的会话信息
+        redisOperator.del(REDIS_USER_TOKEN + ":" + userId);
+
+        //  退出登录,情况购物车cookie 信息
         CookieUtils.deleteCookie(request, response, FOODIE_SHOPCART);
         return JSONResult.ok();
     }
