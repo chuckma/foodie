@@ -1,4 +1,4 @@
-package com.imooc.com.imooc.es.pojo;
+package com.imooc.es.pojo;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
